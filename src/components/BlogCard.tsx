@@ -1,11 +1,10 @@
-import Image from 'next/image';
 "use client";
 
+import Image from 'next/image';
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Calendar, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import { BlogPost } from "@/data/blog";
-import Image from "next/image";
 import Link from "next/link";
 
 interface BlogCardProps {
@@ -15,47 +14,42 @@ interface BlogCardProps {
 export default function BlogCard({ post }: BlogCardProps) {
   return (
     <Link href={`/blog/${post.slug}`}>
-      <Card className="group overflow-hidden h-full hover:shadow-lg transition-shadow">
-        <div className="relative aspect-video overflow-hidden bg-zinc-100">
-         <Image
-  src={post.image}
-  alt={post.title}
-  width={800}
-  height={450}
-  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-  loading="lazy"
-/>
-          <div className="absolute top-3 left-3">
-            <Badge variant="secondary" className="shadow-md">
+      <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
+        <div className="aspect-video overflow-hidden bg-zinc-100">
+          <Image
+            src={post.image}
+            alt={post.title}
+            width={800}
+            height={450}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+          />
+        </div>
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Badge variant="secondary" className="text-xs">
               {post.category}
             </Badge>
+            <div className="flex items-center gap-1 text-sm text-zinc-500">
+              <Clock className="w-4 h-4" />
+              <span>{post.readTime}</span>
+            </div>
           </div>
-        </div>
 
-        <CardContent className="p-5">
-          <h3 className="font-bold text-xl text-zinc-900 mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors">
+          <h3 className="font-bold text-xl mb-3 group-hover:text-orange-600 transition-colors line-clamp-2">
             {post.title}
           </h3>
 
-          <p className="text-sm text-zinc-600 mb-4 line-clamp-2">
+          <p className="text-zinc-600 line-clamp-3 mb-4">
             {post.excerpt}
           </p>
 
-          <div className="flex items-center gap-4 text-xs text-zinc-500">
-            <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              <span suppressHydrationWarning>
-                {new Date(post.date).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              {post.readTime}
-            </div>
+          <div className="text-sm text-zinc-500">
+            {new Date(post.date).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
           </div>
         </CardContent>
       </Card>
