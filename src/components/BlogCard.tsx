@@ -1,3 +1,4 @@
+import Image from 'next/image';
 "use client";
 
 import { Card, CardContent } from "./ui/card";
@@ -16,12 +17,14 @@ export default function BlogCard({ post }: BlogCardProps) {
     <Link href={`/blog/${post.slug}`}>
       <Card className="group overflow-hidden h-full hover:shadow-lg transition-shadow">
         <div className="relative aspect-video overflow-hidden bg-zinc-100">
-          <Image
-            src={post.image}
-            alt={post.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+         <Image
+  src={post.image}
+  alt={post.title}
+  width={800}
+  height={450}
+  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+  loading="lazy"
+/>
           <div className="absolute top-3 left-3">
             <Badge variant="secondary" className="shadow-md">
               {post.category}
