@@ -362,7 +362,7 @@ function parseCSVToBlogPosts(csvText: string): BlogPost[] {
 /**
  * Parse blog post row
  */
-function parseBlogPostRow(headers: string[], values: string[]): unknown | null {
+function parseBlogPostRow(headers: string[], values: string[]): BlogPost | null {
   const row: Record<string, string> = {};
 
   headers.forEach((header, index) => {
