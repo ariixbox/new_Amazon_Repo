@@ -1,3 +1,10 @@
+export const GOOGLE_SHEET_CONFIG = {
+  sheetId: '1GpczMNbB6w1ugf_BGedYBlwWJP4eSn7a8debUqw5fHg',
+  sheetName: 'Products',
+  categoriesSheetName: 'Categories',
+  blogSheetName: 'Blog', // ADD THIS LINE
+  cacheDuration: 5 * 60 * 1000,
+};
 import { Product } from '@/data/products';
 
 // Google Sheets Configuration
@@ -23,6 +30,10 @@ let cacheTimestamp: number = 0;
 // Cache for categories data
 let cachedCategories: Array<{ id: string; name: string; icon: string }> | null = null;
 let categoriesCacheTimestamp: number = 0;
+
+// Cache for blog posts
+let cachedBlogPosts: Array<any> | null = null;
+let blogCacheTimestamp: number = 0;
 
 /**
  * Fetches products from Google Sheets
