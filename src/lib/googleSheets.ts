@@ -292,8 +292,6 @@ function parseCategoryRow(headers: string[], values: string[]): { id: string; na
     icon: row['icon'] || '📦',
   };
 }
-}
-
 /**
  * Parses boolean values from sheet
  */
