@@ -118,7 +118,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Search Bar - Mobile */}
+       {/* Search Bar - Mobile */}
         <div className="md:hidden mt-3 space-y-2">
           <form onSubmit={handleSearch}>
             <div className="relative">
@@ -132,7 +132,7 @@ export default function Header() {
               />
             </div>
           </form>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-end gap-2">
             <LanguageSwitcher />
             <Link href="/blog">
               <Button variant="outline" size="sm">
