@@ -1,3 +1,5 @@
+
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Clock, Calendar } from 'lucide-react';
@@ -83,15 +85,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
 
           {/* Featured Image */}
-          {post.image && (
-            <div className="mb-8 rounded-lg overflow-hidden">
-              <img
-                src={post.image}
-                alt={post.title}
-                className="w-full h-auto object-cover"
-              />
-            </div>
-          )}
+         {post.image && (
+  <div className="mb-8 rounded-lg overflow-hidden">
+    <Image
+      src={post.image}
+      alt={post.title}
+      width={1200}
+      height={630}
+      className="w-full h-auto object-cover"
+      priority
+    />
+  </div>
+)}
 
           {/* Content */}
           <div className="prose prose-zinc max-w-none">
@@ -117,16 +122,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   href={`/blog/${relatedPost.slug}`}
                   className="group bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow"
                 >
-                  {relatedPost.image && (
-                    <div className="aspect-video overflow-hidden">
-                      <img
-                        src={relatedPost.image}
-                        alt={relatedPost.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  )}
-                  <div className="p-6">
+                {relatedPost.image && (
+  <div className="aspect-video overflow-hidden">
+    <Image
+      src={relatedPost.image}
+      alt={relatedPost.title}
+      width={600}
+      height={400}
+      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      loading="lazy"
+    />
+  </div>
+)}
+    />
+  </div>
+)} <div className="p-6">
                     <h3 className="font-semibold text-lg text-zinc-900 group-hover:text-orange-600 mb-2">
                       {relatedPost.title}
                     </h3>
