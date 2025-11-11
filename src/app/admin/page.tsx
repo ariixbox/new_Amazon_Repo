@@ -20,10 +20,10 @@ import { useProducts } from "@/hooks/useProducts";
 
 export default function AdminPage() {
   const { products, loading, error, source, fromGoogleSheets, refetch } = useProducts();
-const [categories, setCategories] = useState<Array<{ id: string; name: string; icon: string }>>([]);
-const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [categories, setCategories] = useState<Array<{ id: string; name: string; icon: string }>>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -36,7 +36,8 @@ const [categoriesLoading, setCategoriesLoading] = useState(true);
     refetch(clearCache);
     setTimeout(() => setRefreshing(false), 1000);
   };
-// Fetch categories
+
+  // Fetch categories
   useEffect(() => {
     async function fetchCategories() {
       try {
@@ -59,6 +60,7 @@ const [categoriesLoading, setCategoriesLoading] = useState(true);
 
     fetchCategories();
   }, []);
+
   const sheetUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_CONFIG.sheetId}/edit`;
   const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_CONFIG.sheetId}/gviz/tq?tqx=out:csv&sheet=${GOOGLE_SHEET_CONFIG.sheetName}`;
 
@@ -283,7 +285,12 @@ const [categoriesLoading, setCategoriesLoading] = useState(true);
                 </div>
                 <div className="text-sm text-zinc-600">Trending</div>
               </div>
-<div className="bg-green-50 rounded-lg p-4 text-center">
+              <div className="bg-green-50 rounded-lg p-4 text-center">
+                <div className="text-3xl font-bold text-green-600 mb-1">
+                  {categoriesLoading ? '...' : categories.length}
+                </div>
+                <div className="text-sm text-zinc-600">Categories</div>
+              </div>
                 <div className="text-3xl font-bold text-green-600 mb-1">
                   {categoriesLoading ? '...' : categories.length}
                 </div>
