@@ -8,13 +8,14 @@ export type Product = {
   price: number;
   image: string;
   category: string[];
-  asin: string; // Amazon Standard Identification Number
+  tags?: string[]; // ADD THIS LINE
+  asin: string;
   saves: number;
   featured?: boolean;
   trending?: boolean;
   rating?: number;
   reviewCount?: number;
-  amazonLink?: string; // Optional custom Amazon affiliate link (e.g., amzn.to/xxx)
+  amazonLink?: string;
 };
 
 export type Category = {
