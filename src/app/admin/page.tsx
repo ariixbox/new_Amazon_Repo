@@ -20,6 +20,8 @@ import { useProducts } from "@/hooks/useProducts";
 
 export default function AdminPage() {
   const { products, loading, error, source, fromGoogleSheets, refetch } = useProducts();
+const [categories, setCategories] = useState<Array<{ id: string; name: string; icon: string }>>([]);
+const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -34,7 +36,29 @@ export default function AdminPage() {
     refetch(clearCache);
     setTimeout(() => setRefreshing(false), 1000);
   };
+// Fetch categories
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        setCategoriesLoading(true);
+        const response = await fetch('/api/categories', {
+          cache: 'no-store',
+        });
+        const data = await response.json();
+        
+        if (data.success && data.categories) {
+          setCategories(data.categories);
+          console.log(`📂 Admin loaded ${data.categories.length} categories`);
+        }
+      } catch (error) {
+        console.error('Error fetching categories in admin:', error);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    }
 
+    fetchCategories();
+  }, []);
   const sheetUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_CONFIG.sheetId}/edit`;
   const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_CONFIG.sheetId}/gviz/tq?tqx=out:csv&sheet=${GOOGLE_SHEET_CONFIG.sheetName}`;
 
@@ -259,14 +283,13 @@ export default function AdminPage() {
                 </div>
                 <div className="text-sm text-zinc-600">Trending</div>
               </div>
-
-              <div className="bg-green-50 rounded-lg p-4 text-center">
+<div className="bg-green-50 rounded-lg p-4 text-center">
                 <div className="text-3xl font-bold text-green-600 mb-1">
-                  {new Set(products.flatMap(p => p.category)).size}
+                  {categoriesLoading ? '...' : categories.length}
                 </div>
                 <div className="text-sm text-zinc-600">Categories</div>
               </div>
-            </div>
+           
           </CardContent>
         </Card>
 
