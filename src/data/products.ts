@@ -8,7 +8,7 @@ export type Product = {
   price: number;
   image: string;
   category: string[];
-  tags?: string[]; // ADD THIS LINE
+  tags?: string[]; 
   asin: string;
   saves: number;
   featured?: boolean;
