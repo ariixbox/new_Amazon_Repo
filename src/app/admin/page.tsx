@@ -15,7 +15,7 @@ import {
   Database,
   Loader2
 } from "lucide-react";
-import { GOOGLE_SHEET_CONFIG } from "@/lib/googleSheets";
+import { GOOGLE_SHEET_CONFIG } from "@/config/googleSheets";
 import { useProducts } from "@/hooks/useProducts";
 
 export default function AdminPage() {
