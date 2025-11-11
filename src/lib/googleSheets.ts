@@ -297,7 +297,7 @@ function parseBool(value: string): boolean {
 /**
  * Fetches blog posts from Google Sheets
  */
-export async function fetchBlogPostsFromSheets(): Promise<unknown[]> {
+export async function fetchBlogPostsFromSheets(): Promise<BlogPost[]> {
   const now = Date.now();
   if (cachedBlogPosts && (now - blogCacheTimestamp) < GOOGLE_SHEET_CONFIG.cacheDuration) {
     return cachedBlogPosts;
