@@ -243,6 +243,13 @@ function parseProductRow(headers: string[], values: string[]): Product | null {
     .map(c => c.trim())
     .filter(c => c.length > 0);
 
+  // Parse tags (comma-separated in sheet)
+  const tags = row['tags'] || row['tag'] || '';
+  const tagArray = tags
+    .split(',')
+    .map(t => t.trim())
+    .filter(t => t.length > 0);
+
   // Build product object
   const product: Product = {
     id: row['id'],
@@ -251,13 +258,14 @@ function parseProductRow(headers: string[], values: string[]): Product | null {
     price: parseFloat(row['price']) || 0,
     image: row['image'] || row['imageurl'] || '',
     category: categoryArray,
+    tags: tagArray,
     asin: row['asin'],
     saves: parseInt(row['saves']) || 0,
     featured: parseBool(row['featured']),
     trending: parseBool(row['trending']),
     rating: parseFloat(row['rating']) || undefined,
     reviewCount: parseInt(row['reviewcount']) || undefined,
-    amazonLink: row['amazonlink'] || undefined, // Custom Amazon affiliate link
+    amazonLink: row['amazonlink'] || undefined,
   };
 
   return product;
@@ -283,28 +291,4 @@ function parseCategoryRow(headers: string[], values: string[]): { id: string; na
     name: row['name'],
     icon: row['icon'] || '📦',
   };
-}
-
-/**
- * Parses boolean values from sheet
- */
-function parseBool(value: string): boolean {
-  const v = value.toLowerCase().trim();
-  return v === 'true' || v === 'yes' || v === '1';
-}
-
-/**
- * Manual cache clear function (call this if you need to force refresh)
- */
-export function clearProductCache(): void {
-  cachedProducts = null;
-  cacheTimestamp = 0;
-}
-
-/**
- * Clear categories cache
- */
-export function clearCategoriesCache(): void {
-  cachedCategories = null;
-  categoriesCacheTimestamp = 0;
 }
