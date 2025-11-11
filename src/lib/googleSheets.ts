@@ -339,7 +339,7 @@ function parseCSVToBlogPosts(csvText: string): BlogPost[] {
   if (lines.length < 2) return [];
 
   const headers = parseCSVLine(lines[0]);
-  const posts: unknown[] = [];
+  const posts: BlogPost[] = [];
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
