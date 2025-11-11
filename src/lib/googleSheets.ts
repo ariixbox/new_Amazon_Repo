@@ -334,7 +334,7 @@ export async function fetchBlogPostsFromSheets(): Promise<BlogPost[]> {
 /**
  * Parse CSV to blog posts
  */
-function parseCSVToBlogPosts(csvText: string): unknown[] {
+function parseCSVToBlogPosts(csvText: string): BlogPost[] {
   const lines = csvText.split('\n');
   if (lines.length < 2) return [];
 
