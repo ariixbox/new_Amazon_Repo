@@ -1,19 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Menu, X, Gift, Home, Zap, Gamepad2, Sparkles } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { categories } from "@/data/products";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslation } from "@/lib/translations";
 
+type Category = {
+  id: string;
+  name: string;
+  icon: string;
+};
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const { language } = useLanguage();
+
+  // Fetch categories on mount
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await fetch('/api/categories', {
+          cache: 'no-store',
+        });
+        const data = await response.json();
+        
+        if (data.success && data.categories) {
+          setCategories(data.categories);
+          console.log(`📂 Loaded ${data.categories.length} categories for navigation`);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    }
+
+    fetchCategories();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +53,8 @@ export default function Header() {
     "home-kitchen": <Home className="w-4 h-4" />,
     toys: <Gamepad2 className="w-4 h-4" />,
     trending: <Sparkles className="w-4 h-4" />,
-    "gift-ideas": <Gift className="w-4 h-4" />
+    "gift-ideas": <Gift className="w-4 h-4" />,
+    judaica: <Sparkles className="w-4 h-4" />,
   };
 
   const categoryNames: Record<string, keyof typeof import("@/lib/translations").translations.en> = {
@@ -133,8 +161,10 @@ export default function Header() {
                   href={`/category/${category.id}`}
                   className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold text-zinc-700 hover:bg-white hover:text-orange-600 transition-colors"
                 >
-                  {categoryIcons[category.id]}
-                  {getTranslation(language, categoryNames[category.id])}
+                  {categoryIcons[category.id] || <span className="w-4 h-4">{category.icon}</span>}
+                  {categoryNames[category.id] 
+                    ? getTranslation(language, categoryNames[category.id])
+                    : category.name}
                 </Link>
               </li>
             ))}
