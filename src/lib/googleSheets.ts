@@ -1,4 +1,5 @@
 import { Product } from '@/data/products';
+import { BlogPost } from '@/data/blog';
 import { GOOGLE_SHEET_CONFIG } from '@/config/googleSheets';
 
 // Cache for products data
@@ -10,7 +11,7 @@ let cachedCategories: Array<{ id: string; name: string; icon: string }> | null =
 let categoriesCacheTimestamp: number = 0;
 
 // Cache for blog posts
-let cachedBlogPosts: Array<any> | null = null;
+let cachedBlogPosts: BlogPost[] | null = null;
 let blogCacheTimestamp: number = 0;
 
 /**
@@ -296,7 +297,7 @@ function parseBool(value: string): boolean {
 /**
  * Fetches blog posts from Google Sheets
  */
-export async function fetchBlogPostsFromSheets(): Promise<any[]> {
+export async function fetchBlogPostsFromSheets(): Promise<unknown[]> {
   const now = Date.now();
   if (cachedBlogPosts && (now - blogCacheTimestamp) < GOOGLE_SHEET_CONFIG.cacheDuration) {
     return cachedBlogPosts;
@@ -321,7 +322,7 @@ export async function fetchBlogPostsFromSheets(): Promise<any[]> {
 
     console.log(`✅ Loaded ${posts.length} blog posts from Google Sheets`);
     return posts;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching blog posts from Google Sheets:', error);
     if (cachedBlogPosts) {
       return cachedBlogPosts;
@@ -333,12 +334,12 @@ export async function fetchBlogPostsFromSheets(): Promise<any[]> {
 /**
  * Parse CSV to blog posts
  */
-function parseCSVToBlogPosts(csvText: string): any[] {
+function parseCSVToBlogPosts(csvText: string): unknown[] {
   const lines = csvText.split('\n');
   if (lines.length < 2) return [];
 
   const headers = parseCSVLine(lines[0]);
-  const posts: any[] = [];
+  const posts: unknown[] = [];
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -361,7 +362,7 @@ function parseCSVToBlogPosts(csvText: string): any[] {
 /**
  * Parse blog post row
  */
-function parseBlogPostRow(headers: string[], values: string[]): any | null {
+function parseBlogPostRow(headers: string[], values: string[]): unknown | null {
   const row: Record<string, string> = {};
 
   headers.forEach((header, index) => {
