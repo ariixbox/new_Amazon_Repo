@@ -19,7 +19,7 @@ import { GOOGLE_SHEET_CONFIG } from "@/lib/googleSheets";
 import { useProducts } from "@/hooks/useProducts";
 
 export default function AdminPage() {
-  const { products, loading, error, refetch } = useProducts();
+  const { products, loading, error, source, fromGoogleSheets, refetch } = useProducts();
   const [copied, setCopied] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -29,9 +29,9 @@ export default function AdminPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleRefresh = async () => {
+  const handleRefresh = async (clearCache = true) => {
     setRefreshing(true);
-    refetch();
+    refetch(clearCache);
     setTimeout(() => setRefreshing(false), 1000);
   };
 
@@ -109,7 +109,47 @@ export default function AdminPage() {
                 </p>
               </div>
             </div>
-
+{/* Data Source Indicator */}
+            {!loading && products.length > 0 && (
+              <div className={`mt-4 p-4 rounded-lg border-2 ${
+                fromGoogleSheets
+                  ? 'bg-green-50 border-green-200'
+                  : 'bg-yellow-50 border-yellow-200'
+              }`}>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    {fromGoogleSheets ? (
+                      <>
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <div>
+                          <div className="font-semibold text-green-900">
+                            ✅ Live Data from Google Sheets
+                          </div>
+                          <div className="text-sm text-green-700">
+                            Your site is showing {products.length} products from your Google Sheet
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="w-5 h-5 text-yellow-600" />
+                        <div className="flex-1">
+                          <div className="font-semibold text-yellow-900">
+                            ⚠️ Using Fallback Data (16 Products)
+                          </div>
+                          <div className="text-sm text-yellow-700 mb-2">
+                            Google Sheets data couldn't load. Using demo products instead.
+                          </div>
+                          <div className="text-sm text-yellow-800 font-medium">
+                            Fix: Make sure your Google Sheet is publicly viewable and published to web
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
             {/* Current Configuration */}
             <div className="space-y-3 pt-4 border-t">
               <div>
@@ -150,24 +190,35 @@ export default function AdminPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3 pt-4 border-t">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t">
               <a
                 href={sheetUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 min-w-[200px]"
               >
                 <Button variant="default" className="w-full">
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
-                  Open Google Sheet
+                  Open Sheet
+                  <ExternalLink className="w-3 h-3 ml-2" />
+                </Button>
+              </a>
+
+              <a
+                href={csvUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="outline" className="w-full">
+                  <Database className="w-4 h-4 mr-2" />
+                  View CSV Data
                   <ExternalLink className="w-3 h-3 ml-2" />
                 </Button>
               </a>
 
               <Button
                 variant="outline"
-                className="flex-1 min-w-[200px]"
-                onClick={handleRefresh}
+                className="w-full"
+                onClick={() => handleRefresh(true)}
                 disabled={refreshing}
               >
                 {refreshing ? (
@@ -175,7 +226,7 @@ export default function AdminPage() {
                 ) : (
                   <RefreshCw className="w-4 h-4 mr-2" />
                 )}
-                Refresh Data
+                Clear Cache & Refresh
               </Button>
             </div>
           </CardContent>
