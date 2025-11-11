@@ -9,6 +9,9 @@ export const GOOGLE_SHEET_CONFIG = {
   // Sheet name/tab (default is "Products")
   sheetName: 'Products',
 
+  // Categories sheet name
+  categoriesSheetName: 'Categories',
+
   // Cache duration in milliseconds (5 minutes)
   cacheDuration: 5 * 60 * 1000,
 };
@@ -16,6 +19,10 @@ export const GOOGLE_SHEET_CONFIG = {
 // Cache for products data
 let cachedProducts: Product[] | null = null;
 let cacheTimestamp: number = 0;
+
+// Cache for categories data
+let cachedCategories: Array<{ id: string; name: string; icon: string }> | null = null;
+let categoriesCacheTimestamp: number = 0;
 
 /**
  * Fetches products from Google Sheets
@@ -64,6 +71,50 @@ export async function fetchProductsFromSheets(): Promise<Product[]> {
 }
 
 /**
+ * Fetches categories from Google Sheets
+ */
+export async function fetchCategoriesFromSheets(): Promise<Array<{ id: string; name: string; icon: string }>> {
+  // Check cache first
+  const now = Date.now();
+  if (cachedCategories && (now - categoriesCacheTimestamp) < GOOGLE_SHEET_CONFIG.cacheDuration) {
+    return cachedCategories;
+  }
+
+  try {
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_CONFIG.sheetId}/gviz/tq?tqx=out:csv&sheet=${GOOGLE_SHEET_CONFIG.categoriesSheetName}`;
+
+    const response = await fetch(csvUrl, {
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch categories data: ${response.status}`);
+    }
+
+    const csvText = await response.text();
+    const categories = parseCSVToCategories(csvText);
+
+    // Update cache
+    cachedCategories = categories;
+    categoriesCacheTimestamp = now;
+
+    console.log(`✅ Loaded ${categories.length} categories from Google Sheets`);
+    return categories;
+  } catch (error) {
+    console.error('Error fetching categories from Google Sheets:', error);
+
+    // Return cached data if available
+    if (cachedCategories) {
+      console.warn('Using cached categories data due to fetch error');
+      return cachedCategories;
+    }
+
+    // Return empty array as fallback
+    return [];
+  }
+}
+
+/**
  * Parses CSV text to Product array
  */
 function parseCSVToProducts(csvText: string): Product[] {
@@ -97,6 +148,42 @@ function parseCSVToProducts(csvText: string): Product[] {
   }
 
   return products;
+}
+
+/**
+ * Parses CSV text to Categories array
+ */
+function parseCSVToCategories(csvText: string): Array<{ id: string; name: string; icon: string }> {
+  const lines = csvText.split('\n');
+
+  if (lines.length < 2) {
+    return [];
+  }
+
+  // Parse header row
+  const headers = parseCSVLine(lines[0]);
+
+  // Parse data rows
+  const categories: Array<{ id: string; name: string; icon: string }> = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const values = parseCSVLine(line);
+    if (values.length < headers.length) continue;
+
+    try {
+      const category = parseCategoryRow(headers, values);
+      if (category) {
+        categories.push(category);
+      }
+    } catch (error) {
+      console.warn(`Error parsing category row ${i}:`, error);
+    }
+  }
+
+  return categories;
 }
 
 /**
@@ -177,6 +264,28 @@ function parseProductRow(headers: string[], values: string[]): Product | null {
 }
 
 /**
+ * Parses a category row from CSV values
+ */
+function parseCategoryRow(headers: string[], values: string[]): { id: string; name: string; icon: string } | null {
+  const row: Record<string, string> = {};
+
+  headers.forEach((header, index) => {
+    row[header.toLowerCase().trim()] = values[index] || '';
+  });
+
+  // Required fields check
+  if (!row['id'] || !row['name']) {
+    return null;
+  }
+
+  return {
+    id: row['id'],
+    name: row['name'],
+    icon: row['icon'] || '📦',
+  };
+}
+
+/**
  * Parses boolean values from sheet
  */
 function parseBool(value: string): boolean {
@@ -190,4 +299,12 @@ function parseBool(value: string): boolean {
 export function clearProductCache(): void {
   cachedProducts = null;
   cacheTimestamp = 0;
+}
+
+/**
+ * Clear categories cache
+ */
+export function clearCategoriesCache(): void {
+  cachedCategories = null;
+  categoriesCacheTimestamp = 0;
 }
