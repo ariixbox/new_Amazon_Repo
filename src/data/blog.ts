@@ -1,73 +1,90 @@
+import { fetchBlogPostsFromSheets } from '@/lib/googleSheets';
+
 export type BlogPost = {
   id: string;
   title: string;
   slug: string;
   excerpt: string;
+  content: string;
+  category: string[];
   image: string;
-  category: string;
+  author: string;
   date: string;
-  readTime: string;
+  featured?: boolean;
+  readTime?: number; // minutes
 };
 
-export const blogPosts: BlogPost[] = [
+// Fallback blog posts
+const fallbackPosts: BlogPost[] = [
   {
     id: "1",
-    title: "Top 10 Smart Home Gadgets That Will Transform Your Living Space",
-    slug: "top-10-smart-home-gadgets",
-    excerpt: "Discover the latest smart home devices that make your life easier, from voice-activated assistants to automated lighting systems.",
-    image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=800&h=600&fit=crop",
-    category: "Home & Kitchen",
-    date: "2025-10-15",
-    readTime: "5 min read"
+    title: "Top 10 Hanukkah Gifts for 2025",
+    slug: "top-hanukkah-gifts-2025",
+    excerpt: "Discover the most meaningful and beautiful Hanukkah gifts to celebrate the Festival of Lights with your loved ones.",
+    content: "<p>Hanukkah is a time of celebration, light, and giving. Finding the perfect gift...</p>",
+    category: ["judaica", "gift-ideas"],
+    image: "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=800",
+    author: "Sarah Cohen",
+    date: "2025-01-15",
+    featured: true,
+    readTime: 5
   },
   {
     id: "2",
-    title: "Best Noise-Cancelling Headphones: A Comprehensive Buyer's Guide",
-    slug: "best-noise-cancelling-headphones-guide",
-    excerpt: "Everything you need to know before buying noise-cancelling headphones, including features to look for and our top recommendations.",
-    image: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&h=600&fit=crop",
-    category: "Electronics",
-    date: "2025-10-20",
-    readTime: "7 min read"
-  },
-  {
-    id: "3",
-    title: "Perfect Gift Ideas for Every Occasion and Budget",
-    slug: "perfect-gift-ideas-guide",
-    excerpt: "Struggling to find the perfect gift? Our curated list has something special for everyone, whether it's a birthday, anniversary, or holiday.",
-    image: "https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=800&h=600&fit=crop",
-    category: "Gift Ideas",
-    date: "2025-10-25",
-    readTime: "6 min read"
-  },
-  {
-    id: "4",
-    title: "Educational Toys That Make Learning Fun for Kids",
-    slug: "educational-toys-for-kids",
-    excerpt: "Explore the best STEM toys and educational games that combine fun with learning, helping children develop critical thinking skills.",
-    image: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800&h=600&fit=crop",
-    category: "Toys",
-    date: "2025-10-28",
-    readTime: "5 min read"
-  },
-  {
-    id: "5",
-    title: "Kitchen Gadgets That Will Make You Love Cooking Again",
-    slug: "must-have-kitchen-gadgets",
-    excerpt: "From air fryers to smart coffee makers, these innovative kitchen tools will revolutionize your cooking experience and save you time.",
-    image: "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&h=600&fit=crop",
-    category: "Home & Kitchen",
-    date: "2025-11-01",
-    readTime: "8 min read"
-  },
-  {
-    id: "6",
-    title: "Trending Tech Products You Need to See This Month",
-    slug: "trending-tech-products-november",
-    excerpt: "Stay ahead of the curve with our roundup of the hottest tech products that are taking the market by storm this month.",
-    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=600&fit=crop",
-    category: "Electronics",
-    date: "2025-11-05",
-    readTime: "4 min read"
+    title: "Complete Passover Seder Guide",
+    slug: "passover-seder-guide",
+    excerpt: "Everything you need to know to host a memorable and meaningful Passover Seder.",
+    content: "<p>The Passover Seder is one of the most important Jewish traditions...</p>",
+    category: ["judaica"],
+    image: "https://images.unsplash.com/photo-1464454709131-ffd692591ee5?w=800",
+    author: "Rabbi David Levy",
+    date: "2025-03-01",
+    featured: false,
+    readTime: 8
   }
 ];
+
+// Cache
+let cachedBlogPosts: BlogPost[] | null = null;
+let blogDataSource: 'google-sheets' | 'fallback' = 'fallback';
+
+/**
+ * Load blog posts from Google Sheets
+ */
+export async function loadBlogPosts(): Promise<BlogPost[]> {
+  if (cachedBlogPosts) {
+    return cachedBlogPosts;
+  }
+
+  try {
+    const sheetsPosts = await fetchBlogPostsFromSheets();
+
+    if (sheetsPosts.length > 0) {
+      console.log(`✅ Loaded ${sheetsPosts.length} blog posts from Google Sheets`);
+      cachedBlogPosts = sheetsPosts;
+      blogDataSource = 'google-sheets';
+      return sheetsPosts;
+    }
+
+    console.warn('⚠️ No blog posts from Google Sheets, using fallback data');
+    cachedBlogPosts = fallbackPosts;
+    blogDataSource = 'fallback';
+    return fallbackPosts;
+  } catch (error) {
+    console.error('❌ Error loading blog posts from Google Sheets:', error);
+    cachedBlogPosts = fallbackPosts;
+    blogDataSource = 'fallback';
+    return fallbackPosts;
+  }
+}
+
+export function getBlogDataSource(): 'google-sheets' | 'fallback' {
+  return blogDataSource;
+}
+
+export function clearBlogCache(): void {
+  cachedBlogPosts = null;
+  console.log('🔄 Blog cache cleared');
+}
+
+export const blogPosts = fallbackPosts;
