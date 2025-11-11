@@ -7,6 +7,12 @@ export const GOOGLE_SHEET_CONFIG = {
   // Sheet name/tab (default is "Products")
   sheetName: 'Products',
 
+  // Categories sheet name
+  categoriesSheetName: 'Categories',
+
+  // Blog sheet name
+  blogSheetName: 'Blog',
+
   // Cache duration in milliseconds (5 minutes)
   cacheDuration: 5 * 60 * 1000,
 };
