@@ -1,5 +1,5 @@
 import { generateAffiliateLink } from '@/config/affiliate';
-import { fetchProductsFromSheets } from '@/lib/googleSheets';
+import { fetchProductsFromSheets, fetchCategoriesFromSheets } from '@/lib/googleSheets';
 
 export type Product = {
   id: string;
@@ -15,6 +15,12 @@ export type Product = {
   rating?: number;
   reviewCount?: number;
   amazonLink?: string; // Optional custom Amazon affiliate link (e.g., amzn.to/xxx)
+};
+
+export type Category = {
+  id: string;
+  name: string;
+  icon: string;
 };
 
 // Helper function to get affiliate link for a product
@@ -237,17 +243,23 @@ const fallbackProducts: Product[] = [
   }
 ];
 
-export const categories = [
+// Fallback categories
+const fallbackCategories: Category[] = [
   { id: "electronics", name: "Electronics", icon: "🔌" },
   { id: "home-kitchen", name: "Home & Kitchen", icon: "🏠" },
   { id: "toys", name: "Toys", icon: "🎮" },
   { id: "trending", name: "Trending Products", icon: "🔥" },
-  { id: "gift-ideas", name: "Gift Ideas", icon: "🎁" }
+  { id: "gift-ideas", name: "Gift Ideas", icon: "🎁" },
+  { id: "judaica", name: "Jewish Holidays & Judaica", icon: "🕎" }
 ];
 
 // Cache for products loaded from Google Sheets
 let cachedProductsData: Product[] | null = null;
 let dataSource: 'google-sheets' | 'fallback' = 'fallback';
+
+// Cache for categories loaded from Google Sheets
+let cachedCategoriesData: Category[] | null = null;
+let categoriesDataSource: 'google-sheets' | 'fallback' = 'fallback';
 
 /**
  * Load products from Google Sheets with fallback to hardcoded data
@@ -284,10 +296,50 @@ export async function loadProducts(): Promise<Product[]> {
 }
 
 /**
+ * Load categories from Google Sheets with fallback to hardcoded data
+ */
+export async function loadCategories(): Promise<Category[]> {
+  // Return cached data if available
+  if (cachedCategoriesData) {
+    return cachedCategoriesData;
+  }
+
+  try {
+    // Try to fetch from Google Sheets
+    const sheetsCategories = await fetchCategoriesFromSheets();
+
+    if (sheetsCategories.length > 0) {
+      console.log(`✅ Loaded ${sheetsCategories.length} categories from Google Sheets`);
+      cachedCategoriesData = sheetsCategories;
+      categoriesDataSource = 'google-sheets';
+      return sheetsCategories;
+    }
+
+    // If no categories from sheets, use fallback
+    console.warn('⚠️ No categories from Google Sheets, using fallback data');
+    cachedCategoriesData = fallbackCategories;
+    categoriesDataSource = 'fallback';
+    return fallbackCategories;
+  } catch (error) {
+    console.error('❌ Error loading categories from Google Sheets:', error);
+    cachedCategoriesData = fallbackCategories;
+    categoriesDataSource = 'fallback';
+    return fallbackCategories;
+  }
+}
+
+/**
  * Get the current data source
  */
 export function getDataSource(): 'google-sheets' | 'fallback' {
   return dataSource;
+}
+
+/**
+ * Get the current categories data source
+ */
+export function getCategoriesDataSource(): 'google-sheets' | 'fallback' {
+  return categoriesDataSource;
 }
 
 /**
@@ -299,7 +351,21 @@ export function clearProductsCache(): void {
 }
 
 /**
+ * Clear categories cache
+ */
+export function clearCategoriesCacheLocal(): void {
+  cachedCategoriesData = null;
+  console.log('🔄 Categories cache cleared');
+}
+
+/**
  * Export products for backward compatibility
  * In client components, use loadProducts() instead
  */
 export const products = fallbackProducts;
+
+/**
+ * Export categories - will be loaded dynamically
+ * Use loadCategories() for server-side loading
+ */
+export const categories = fallbackCategories;
