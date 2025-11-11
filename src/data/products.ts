@@ -247,6 +247,7 @@ export const categories = [
 
 // Cache for products loaded from Google Sheets
 let cachedProductsData: Product[] | null = null;
+let dataSource: 'google-sheets' | 'fallback' = 'fallback';
 
 /**
  * Load products from Google Sheets with fallback to hardcoded data
@@ -263,19 +264,38 @@ export async function loadProducts(): Promise<Product[]> {
     const sheetsProducts = await fetchProductsFromSheets();
 
     if (sheetsProducts.length > 0) {
+      console.log(`✅ Loaded ${sheetsProducts.length} products from Google Sheets`);
       cachedProductsData = sheetsProducts;
+      dataSource = 'google-sheets';
       return sheetsProducts;
     }
 
     // If no products from sheets, use fallback
-    console.warn('No products from Google Sheets, using fallback data');
+    console.warn('⚠️ No products from Google Sheets, using fallback data');
     cachedProductsData = fallbackProducts;
+    dataSource = 'fallback';
     return fallbackProducts;
   } catch (error) {
-    console.error('Error loading products from Google Sheets:', error);
+    console.error('❌ Error loading products from Google Sheets:', error);
     cachedProductsData = fallbackProducts;
+    dataSource = 'fallback';
     return fallbackProducts;
   }
+}
+
+/**
+ * Get the current data source
+ */
+export function getDataSource(): 'google-sheets' | 'fallback' {
+  return dataSource;
+}
+
+/**
+ * Clear product cache (useful for forcing refresh)
+ */
+export function clearProductsCache(): void {
+  cachedProductsData = null;
+  console.log('🔄 Product cache cleared');
 }
 
 /**
