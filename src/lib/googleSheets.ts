@@ -1,27 +1,5 @@
-export const GOOGLE_SHEET_CONFIG = {
-  sheetId: '1GpczMNbB6w1ugf_BGedYBlwWJP4eSn7a8debUqw5fHg',
-  sheetName: 'Products',
-  categoriesSheetName: 'Categories',
-  blogSheetName: 'Blog', // ADD THIS LINE
-  cacheDuration: 5 * 60 * 1000,
-};
 import { Product } from '@/data/products';
-
-// Google Sheets Configuration
-// Replace this with your own Google Sheet ID after setup
-export const GOOGLE_SHEET_CONFIG = {
-  // Get this from your Google Sheet URL: https://docs.google.com/spreadsheets/d/SHEET_ID/edit
-  sheetId: '1GpczMNbB6w1ugf_BGedYBlwWJP4eSn7a8debUqw5fHg',
-
-  // Sheet name/tab (default is "Products")
-  sheetName: 'Products',
-
-  // Categories sheet name
-  categoriesSheetName: 'Categories',
-
-  // Cache duration in milliseconds (5 minutes)
-  cacheDuration: 5 * 60 * 1000,
-};
+import { GOOGLE_SHEET_CONFIG } from '@/config/googleSheets';
 
 // Cache for products data
 let cachedProducts: Product[] | null = null;
