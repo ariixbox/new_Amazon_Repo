@@ -61,7 +61,7 @@ export async function loadBlogPosts(): Promise<BlogPost[]> {
 
     if (sheetsPosts.length > 0) {
       console.log(`✅ Loaded ${sheetsPosts.length} blog posts from Google Sheets`);
-      cachedBlogPosts = sheetsPosts;
+      cachedBlogPosts = sheetsPosts as BlogPost[];
       blogDataSource = 'google-sheets';
       return sheetsPosts;
     }
