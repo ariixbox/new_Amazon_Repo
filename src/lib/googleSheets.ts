@@ -314,6 +314,115 @@ function parseBool(value: string): boolean {
 /**
  * Manual cache clear function (call this if you need to force refresh)
  */
+
+/**
+ * Fetches blog posts from Google Sheets
+ */
+export async function fetchBlogPostsFromSheets(): Promise<any[]> {
+  const now = Date.now();
+  if (cachedBlogPosts && (now - blogCacheTimestamp) < GOOGLE_SHEET_CONFIG.cacheDuration) {
+    return cachedBlogPosts;
+  }
+
+  try {
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_CONFIG.sheetId}/gviz/tq?tqx=out:csv&sheet=${GOOGLE_SHEET_CONFIG.blogSheetName}`;
+
+    const response = await fetch(csvUrl, {
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch blog posts: ${response.status}`);
+    }
+
+    const csvText = await response.text();
+    const posts = parseCSVToBlogPosts(csvText);
+
+    cachedBlogPosts = posts;
+    blogCacheTimestamp = now;
+
+    console.log(`✅ Loaded ${posts.length} blog posts from Google Sheets`);
+    return posts;
+  } catch (error) {
+    console.error('Error fetching blog posts from Google Sheets:', error);
+    if (cachedBlogPosts) {
+      return cachedBlogPosts;
+    }
+    return [];
+  }
+}
+
+/**
+ * Parse CSV to blog posts
+ */
+function parseCSVToBlogPosts(csvText: string): any[] {
+  const lines = csvText.split('\n');
+  if (lines.length < 2) return [];
+
+  const headers = parseCSVLine(lines[0]);
+  const posts: any[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const values = parseCSVLine(line);
+    if (values.length < headers.length) continue;
+
+    try {
+      const post = parseBlogPostRow(headers, values);
+      if (post) posts.push(post);
+    } catch (error) {
+      console.warn(`Error parsing blog post row ${i}:`, error);
+    }
+  }
+
+  return posts;
+}
+
+/**
+ * Parse blog post row
+ */
+function parseBlogPostRow(headers: string[], values: string[]): any | null {
+  const row: Record<string, string> = {};
+
+  headers.forEach((header, index) => {
+    row[header.toLowerCase().trim()] = values[index] || '';
+  });
+
+  if (!row['id'] || !row['title'] || !row['slug']) {
+    return null;
+  }
+
+  const categories = row['category'] || row['categories'] || '';
+  const categoryArray = categories
+    .split(',')
+    .map(c => c.trim())
+    .filter(c => c.length > 0);
+
+  return {
+    id: row['id'],
+    title: row['title'],
+    slug: row['slug'],
+    excerpt: row['excerpt'] || '',
+    content: row['content'] || '',
+    category: categoryArray,
+    image: row['image'] || '',
+    author: row['author'] || 'Staff Writer',
+    date: row['date'] || new Date().toISOString().split('T')[0],
+    featured: parseBool(row['featured']),
+    readTime: parseInt(row['readtime']) || undefined,
+  };
+}
+
+/**
+ * Clear blog cache
+ */
+export function clearBlogCache(): void {
+  cachedBlogPosts = null;
+  blogCacheTimestamp = 0;
+}
+
 export function clearProductCache(): void {
   cachedProducts = null;
   cacheTimestamp = 0;
