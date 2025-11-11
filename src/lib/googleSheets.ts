@@ -292,3 +292,28 @@ function parseCategoryRow(headers: string[], values: string[]): { id: string; na
     icon: row['icon'] || '📦',
   };
 }
+}
+
+/**
+ * Parses boolean values from sheet
+ */
+function parseBool(value: string): boolean {
+  const v = value.toLowerCase().trim();
+  return v === 'true' || v === 'yes' || v === '1';
+}
+
+/**
+ * Manual cache clear function (call this if you need to force refresh)
+ */
+export function clearProductCache(): void {
+  cachedProducts = null;
+  cacheTimestamp = 0;
+}
+
+/**
+ * Clear categories cache
+ */
+export function clearCategoriesCache(): void {
+  cachedCategories = null;
+  categoriesCacheTimestamp = 0;
+}
