@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 "use client";
 
 import { Card, CardContent } from "./ui/card";
@@ -33,11 +35,13 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Image Container */}
       <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100">
         <Image
-          src={product.image}
-          alt={product.title}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
-        />
+  src={product.image}
+  alt={product.title}
+  width={400}
+  height={400}
+  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+  loading="lazy"
+/>
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
