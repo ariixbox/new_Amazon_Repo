@@ -1,5 +1,6 @@
 import { Product } from '@/data/products';
 import { BlogPost } from '@/data/blog';
+import { Category } from '@/data/categories';
 import { GOOGLE_SHEET_CONFIG } from '@/config/googleSheets';
 
 // Cache for products data
@@ -9,6 +10,10 @@ let cacheTimestamp: number = 0;
 // Cache for blog posts data
 let cachedBlogPosts: BlogPost[] | null = null;
 let blogCacheTimestamp: number = 0;
+
+// Cache for categories data
+let cachedCategories: Category[] | null = null;
+let categoriesCacheTimestamp: number = 0;
 
 /**
  * Helper function to create URL-friendly slugs
@@ -112,6 +117,50 @@ export async function fetchBlogPostsFromSheets(): Promise<BlogPost[]> {
 }
 
 /**
+ * Fetches categories from Google Sheets
+ */
+export async function fetchCategoriesFromSheets(): Promise<Category[]> {
+  // Check cache first
+  const now = Date.now();
+  if (cachedCategories && (now - categoriesCacheTimestamp) < GOOGLE_SHEET_CONFIG.cacheDuration) {
+    return cachedCategories;
+  }
+
+  try {
+    // Use the published CSV endpoint for categories sheet
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_CONFIG.sheetId}/gviz/tq?tqx=out:csv&sheet=${GOOGLE_SHEET_CONFIG.categoriesSheetName}`;
+
+    const response = await fetch(csvUrl, {
+      cache: 'no-store', // Always fetch fresh data
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch categories sheet data: ${response.status}`);
+    }
+
+    const csvText = await response.text();
+    const categories = parseCSVToCategories(csvText);
+
+    // Update cache
+    cachedCategories = categories;
+    categoriesCacheTimestamp = now;
+
+    return categories;
+  } catch (error) {
+    console.error('Error fetching categories from Google Sheets:', error);
+
+    // Return cached data if available, even if expired
+    if (cachedCategories) {
+      console.warn('Using cached category data due to fetch error');
+      return cachedCategories;
+    }
+
+    // Return empty array as fallback
+    return [];
+  }
+}
+
+/**
  * Parses CSV text to Product array
  */
 function parseCSVToProducts(csvText: string): Product[] {
@@ -181,6 +230,42 @@ function parseCSVToBlogPosts(csvText: string): BlogPost[] {
   }
 
   return blogPosts;
+}
+
+/**
+ * Parses CSV text to Category array
+ */
+function parseCSVToCategories(csvText: string): Category[] {
+  const lines = csvText.split('\n');
+
+  if (lines.length < 2) {
+    return [];
+  }
+
+  // Parse header row
+  const headers = parseCSVLine(lines[0]);
+
+  // Parse data rows
+  const categories: Category[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const values = parseCSVLine(line);
+    if (values.length < headers.length) continue;
+
+    try {
+      const category = parseCategoryRow(headers, values);
+      if (category) {
+        categories.push(category);
+      }
+    } catch (error) {
+      console.warn(`Error parsing category row ${i}:`, error);
+    }
+  }
+
+  return categories;
 }
 
 /**
@@ -301,6 +386,31 @@ function parseBlogPostRow(headers: string[], values: string[]): BlogPost | null 
 }
 
 /**
+ * Parses a category row from CSV values
+ */
+function parseCategoryRow(headers: string[], values: string[]): Category | null {
+  const row: Record<string, string> = {};
+
+  headers.forEach((header, index) => {
+    row[header.toLowerCase().trim()] = values[index] || '';
+  });
+
+  // Required fields check
+  if (!row['id'] || !row['name']) {
+    return null;
+  }
+
+  // Build category object
+  const category: Category = {
+    id: row['id'],
+    name: row['name'],
+    icon: row['icon'] || undefined,
+  };
+
+  return category;
+}
+
+/**
  * Parses boolean values from sheet
  */
 function parseBool(value: string): boolean {
@@ -322,4 +432,12 @@ export function clearProductCache(): void {
 export function clearBlogCache(): void {
   cachedBlogPosts = null;
   blogCacheTimestamp = 0;
+}
+
+/**
+ * Manual cache clear function for categories
+ */
+export function clearCategoriesCache(): void {
+  cachedCategories = null;
+  categoriesCacheTimestamp = 0;
 }

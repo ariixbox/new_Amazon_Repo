@@ -10,6 +10,9 @@ export const GOOGLE_SHEET_CONFIG = {
   // Blog sheet name/tab
   blogSheetName: 'Blog',
 
+  // Categories sheet name/tab
+  categoriesSheetName: 'Categories',
+
   // Cache duration in milliseconds (5 minutes)
   cacheDuration: 5 * 60 * 1000,
 };

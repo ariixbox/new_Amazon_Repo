@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Search, Menu, X, Gift, Home, Zap, Gamepad2, Sparkles } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { categories } from "@/data/products";
+import { useCategories } from "@/hooks/useCategories";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslation } from "@/lib/translations";
@@ -14,6 +14,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { language } = useLanguage();
+  const { categories } = useCategories();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,8 +134,8 @@ export default function Header() {
                   href={`/category/${category.id}`}
                   className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold text-zinc-700 hover:bg-white hover:text-orange-600 transition-colors"
                 >
-                  {categoryIcons[category.id]}
-                  {getTranslation(language, categoryNames[category.id])}
+                  {categoryIcons[category.id] || (category.icon && <span>{category.icon}</span>)}
+                  {categoryNames[category.id] ? getTranslation(language, categoryNames[category.id]) : category.name}
                 </Link>
               </li>
             ))}
