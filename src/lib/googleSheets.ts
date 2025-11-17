@@ -11,6 +11,17 @@ let cachedBlogPosts: BlogPost[] | null = null;
 let blogCacheTimestamp: number = 0;
 
 /**
+ * Helper function to create URL-friendly slugs
+ */
+function createSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric chars with hyphens
+    .replace(/^-+|-+$/g, '')      // Remove leading/trailing hyphens
+    .substring(0, 100);            // Limit length
+}
+
+/**
  * Fetches products from Google Sheets
  * Uses the published CSV endpoint for simplicity (no API key required)
  */
@@ -260,15 +271,24 @@ function parseBlogPostRow(headers: string[], values: string[]): BlogPost | null 
   });
 
   // Required fields check
-  if (!row['id'] || !row['title'] || !row['slug']) {
+  if (!row['id'] || !row['title']) {
     return null;
+  }
+
+  // Generate slug from title if slug is missing or looks invalid
+  let slug = row['slug'] || '';
+
+  // Check if slug contains invalid characters (spaces, special chars, etc.)
+  if (!slug || /[^a-z0-9-]/.test(slug)) {
+    // Generate a clean slug from the title
+    slug = createSlug(row['title']);
   }
 
   // Build blog post object
   const blogPost: BlogPost = {
     id: row['id'],
     title: row['title'],
-    slug: row['slug'],
+    slug: slug,
     excerpt: row['excerpt'] || '',
     image: row['image'] || row['imageurl'] || '',
     category: row['category'] || '',

@@ -22,26 +22,7 @@ export default function Blog() {
             Expert product reviews, buying guides, and shopping tips to help you make informed purchase decisions
           </p>
 
-          {/* Data Source Indicator */}
-          {!loading && blogPosts.length > 0 && (
-            <div className={`mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
-              fromGoogleSheets
-                ? 'bg-green-100 text-green-800'
-                : 'bg-yellow-100 text-yellow-800'
-            }`}>
-              {fromGoogleSheets ? (
-                <>
-                  <span className="w-2 h-2 bg-green-600 rounded-full"></span>
-                  Live from Google Sheets
-                </>
-              ) : (
-                <>
-                  <span className="w-2 h-2 bg-yellow-600 rounded-full"></span>
-                  Using Demo Data
-                </>
-              )}
-            </div>
-          )}
+
         </div>
 
         {/* Loading State */}
