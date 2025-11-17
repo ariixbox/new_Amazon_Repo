@@ -290,6 +290,7 @@ function parseBlogPostRow(headers: string[], values: string[]): BlogPost | null 
     title: row['title'],
     slug: slug,
     excerpt: row['excerpt'] || '',
+    content: row['content'] || '', // Full blog post content
     image: row['image'] || row['imageurl'] || '',
     category: row['category'] || '',
     date: row['date'] || new Date().toISOString().split('T')[0],

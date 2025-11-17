@@ -5,6 +5,7 @@ export type BlogPost = {
   title: string;
   slug: string;
   excerpt: string;
+  content?: string; // Full blog post content
   image: string;
   category: string;
   date: string;

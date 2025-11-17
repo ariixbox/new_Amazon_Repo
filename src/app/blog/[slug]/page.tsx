@@ -98,10 +98,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           {/* Content */}
           <div className="prose prose-zinc max-w-none">
             <div className="text-zinc-700 leading-relaxed space-y-4 text-lg">
-              <p>{post.excerpt}</p>
-              <p className="text-zinc-500 italic mt-6">
-                This is a sample blog post. Full content can be managed through Google Sheets by adding a "content" column to your Blog sheet.
-              </p>
+              {post.content ? (
+                // Display full content from Google Sheets
+                <div className="whitespace-pre-wrap">{post.content}</div>
+              ) : (
+                // Fallback to excerpt if no content
+                <>
+                  <p>{post.excerpt}</p>
+                  <p className="text-zinc-500 italic mt-6">
+                    Add full content to the "content" column in your Blog sheet to display it here.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </article>
