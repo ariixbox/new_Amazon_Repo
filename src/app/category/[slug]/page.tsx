@@ -1,19 +1,35 @@
 "use client";
 
 import { use } from "react";
-import { categories } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import { Badge } from "@/components/ui/badge";
 import { notFound } from "next/navigation";
 import { useProducts } from "@/hooks/useProducts";
+import { useCategories } from "@/hooks/useCategories";
 import { Loader2 } from "lucide-react";
 
 export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
-  const { products, loading, error } = useProducts();
+  const { products, loading: productsLoading, error: productsError } = useProducts();
+  const { categories, loading: categoriesLoading } = useCategories();
 
   const category = categories.find(c => c.id === slug);
 
+  // If categories are still loading, show loading state
+  if (categoriesLoading || productsLoading) {
+    return (
+      <div className="min-h-screen bg-zinc-50 py-12">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+            <span className="ml-3 text-lg text-zinc-600">Loading...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If category not found after loading, show 404
   if (!category) {
     notFound();
   }
@@ -37,15 +53,10 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         </div>
 
         {/* Products Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
-            <span className="ml-3 text-lg text-zinc-600">Loading products...</span>
-          </div>
-        ) : error ? (
+        {productsError ? (
           <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
             <p className="text-red-800 font-semibold mb-2">Error loading products</p>
-            <p className="text-red-600 text-sm">{error}</p>
+            <p className="text-red-600 text-sm">{productsError}</p>
           </div>
         ) : (
           <>
