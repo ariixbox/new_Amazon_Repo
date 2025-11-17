@@ -1,0 +1,68 @@
+URGENT: Fix Build Error - Upload These 3 Files to GitHub
+=========================================================
+
+FILE 1 - CREATE NEW: src/config/googleSheets.ts
+-----------------------------------------------
+Go to: https://github.com/ariixbox/new_Amazon_Repo/new/main/src/config
+Name it: googleSheets.ts
+Content below:
+
+---START OF FILE---
+// Google Sheets Configuration
+// Replace this with your own Google Sheet ID after setup
+export const GOOGLE_SHEET_CONFIG = {
+  // Get this from your Google Sheet URL: https://docs.google.com/spreadsheets/d/SHEET_ID/edit
+  sheetId: '1GpczMNbB6w1ugf_BGedYBlwWJP4eSn7a8debUqw5fHg',
+
+  // Sheet name/tab (default is "Products")
+  sheetName: 'Products',
+
+  // Cache duration in milliseconds (5 minutes)
+  cacheDuration: 5 * 60 * 1000,
+};
+---END OF FILE---
+
+
+FILE 2 - EDIT: src/lib/googleSheets.ts  
+---------------------------------------
+Go to: https://github.com/ariixbox/new_Amazon_Repo/edit/main/src/lib/googleSheets.ts
+
+CHANGE THE FIRST 14 LINES FROM THIS:
+
+import { Product } from '@/data/products';
+
+// Google Sheets Configuration
+// Replace this with your own Google Sheet ID after setup
+export const GOOGLE_SHEET_CONFIG = {
+  // Get this from your Google Sheet URL: https://docs.google.com/spreadsheets/d/SHEET_ID/edit
+  sheetId: '1GpczMNbB6w1ugf_BGedYBlwWJP4eSn7a8debUqw5fHg',
+
+  // Sheet name/tab (default is "Products")
+  sheetName: 'Products',
+
+  // Cache duration in milliseconds (5 minutes)
+  cacheDuration: 5 * 60 * 1000,
+};
+
+TO THIS (just 2 lines):
+
+import { Product } from '@/data/products';
+import { GOOGLE_SHEET_CONFIG } from '@/config/googleSheets';
+
+
+FILE 3 - EDIT: src/app/admin/page.tsx
+--------------------------------------
+Go to: https://github.com/ariixbox/new_Amazon_Repo/edit/main/src/app/admin/page.tsx
+
+FIND (around line 18):
+import { GOOGLE_SHEET_CONFIG } from "@/lib/googleSheets";
+
+CHANGE TO:
+import { GOOGLE_SHEET_CONFIG } from "@/config/googleSheets";
+
+
+THAT'S IT!
+==========
+After uploading these 3 changes, Netlify will auto-rebuild in 2-3 minutes.
+Check: https://app.netlify.com/sites/new-amazon-repo/deploys
+
