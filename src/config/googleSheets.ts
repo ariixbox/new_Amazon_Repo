@@ -13,6 +13,9 @@ export const GOOGLE_SHEET_CONFIG = {
   // Categories sheet name/tab
   categoriesSheetName: 'Categories',
 
+  // Holidays sheet name/tab
+  holidaysSheetName: 'Holidays',
+
   // Cache duration in milliseconds (5 minutes)
   cacheDuration: 5 * 60 * 1000,
 };

@@ -8,22 +8,35 @@ import BlogCard from "@/components/BlogCard";
 import Newsletter from "@/components/Newsletter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Sparkles, Gift, ArrowRight, Loader2 } from "lucide-react";
+import { TrendingUp, Sparkles, Gift, ArrowRight, Loader2, Calendar } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslation } from "@/lib/translations";
 import { useProducts } from "@/hooks/useProducts";
+import { useHolidays } from "@/hooks/useHolidays";
+import { getUpcomingHolidays } from "@/data/holidays";
 
 export default function Home() {
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [priceRange, setPriceRange] = useState<string>("all");
+  const [selectedHoliday, setSelectedHoliday] = useState<string | null>(null);
   const { language } = useLanguage();
   const { products, loading, error } = useProducts();
+  const { holidays } = useHolidays();
+
+  const upcomingHolidays = useMemo(() => getUpcomingHolidays(holidays), [holidays]);
 
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
+    // Holiday filter - if a holiday is selected, filter by its category
+    if (selectedHoliday) {
+      const holiday = holidays.find(h => h.id === selectedHoliday);
+      if (holiday?.categoryFilter) {
+        filtered = filtered.filter(p => p.category.includes(holiday.categoryFilter!));
+      }
+    }
     // Category filter
-    if (selectedFilter === "trending") {
+    else if (selectedFilter === "trending") {
       filtered = filtered.filter(p => p.trending);
     } else if (selectedFilter === "featured") {
       filtered = filtered.filter(p => p.featured);
@@ -43,7 +56,7 @@ export default function Home() {
     }
 
     return filtered;
-  }, [selectedFilter, priceRange, products]);
+  }, [selectedFilter, priceRange, selectedHoliday, products, holidays]);
 
   const featuredProducts = products.filter(p => p.featured);
   const trendingProducts = products.filter(p => p.trending);
@@ -78,27 +91,80 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Upcoming Holidays */}
+      {upcomingHolidays.length > 0 && (
+        <section className="py-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Calendar className="w-5 h-5 text-indigo-600" />
+              <h3 className="text-lg font-semibold text-zinc-900">Upcoming Holidays</h3>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant={!selectedHoliday ? "default" : "outline"}
+                onClick={() => {
+                  setSelectedHoliday(null);
+                  setSelectedFilter("all");
+                }}
+                size="sm"
+                className="rounded-full"
+              >
+                All Products
+              </Button>
+              {upcomingHolidays.map((holiday) => (
+                <Button
+                  key={holiday.id}
+                  variant={selectedHoliday === holiday.id ? "default" : "outline"}
+                  onClick={() => {
+                    setSelectedHoliday(holiday.id);
+                    setSelectedFilter("all");
+                  }}
+                  size="sm"
+                  className="rounded-full"
+                >
+                  {holiday.icon} {holiday.name}
+                  {holiday.date && (
+                    <span className="ml-2 text-xs opacity-75">
+                      {new Date(holiday.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  )}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Featured Categories */}
       <section className="py-8 bg-white border-b">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap gap-3 justify-center">
             <Button
-              variant={selectedFilter === "all" ? "default" : "outline"}
-              onClick={() => setSelectedFilter("all")}
+              variant={selectedFilter === "all" && !selectedHoliday ? "default" : "outline"}
+              onClick={() => {
+                setSelectedFilter("all");
+                setSelectedHoliday(null);
+              }}
               className="rounded-full"
             >
               {getTranslation(language, 'allProducts')}
             </Button>
             <Button
               variant={selectedFilter === "trending" ? "default" : "outline"}
-              onClick={() => setSelectedFilter("trending")}
+              onClick={() => {
+                setSelectedFilter("trending");
+                setSelectedHoliday(null);
+              }}
               className="rounded-full"
             >
               🔥 {getTranslation(language, 'trending')}
             </Button>
             <Button
               variant={selectedFilter === "featured" ? "default" : "outline"}
-              onClick={() => setSelectedFilter("featured")}
+              onClick={() => {
+                setSelectedFilter("featured");
+                setSelectedHoliday(null);
+              }}
               className="rounded-full"
             >
               ⭐ {getTranslation(language, 'featured')}
@@ -114,7 +180,10 @@ export default function Home() {
                 <Button
                   key={cat.id}
                   variant={selectedFilter === cat.id ? "default" : "outline"}
-                  onClick={() => setSelectedFilter(cat.id)}
+                  onClick={() => {
+                    setSelectedFilter(cat.id);
+                    setSelectedHoliday(null);
+                  }}
                   className="rounded-full"
                 >
                   {cat.icon} {getTranslation(language, catNameKey)}
@@ -175,7 +244,11 @@ export default function Home() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-3xl font-bold text-zinc-900 mb-2">
-                {selectedFilter === "all" ? getTranslation(language, 'allProductsTitle') :
+                {selectedHoliday ? (() => {
+                   const holiday = holidays.find(h => h.id === selectedHoliday);
+                   return holiday ? `${holiday.icon} ${holiday.name} Gift Ideas` : getTranslation(language, 'allProductsTitle');
+                 })() :
+                 selectedFilter === "all" ? getTranslation(language, 'allProductsTitle') :
                  selectedFilter === "trending" ? getTranslation(language, 'trendingNow') :
                  selectedFilter === "featured" ? getTranslation(language, 'featuredProducts') :
                  (() => {

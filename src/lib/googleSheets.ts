@@ -1,6 +1,7 @@
 import { Product } from '@/data/products';
 import { BlogPost } from '@/data/blog';
 import { Category } from '@/data/categories';
+import { Holiday } from '@/data/holidays';
 import { GOOGLE_SHEET_CONFIG } from '@/config/googleSheets';
 
 // Cache for products data
@@ -14,6 +15,10 @@ let blogCacheTimestamp: number = 0;
 // Cache for categories data
 let cachedCategories: Category[] | null = null;
 let categoriesCacheTimestamp: number = 0;
+
+// Cache for holidays data
+let cachedHolidays: Holiday[] | null = null;
+let holidaysCacheTimestamp: number = 0;
 
 /**
  * Helper function to create URL-friendly slugs
@@ -153,6 +158,50 @@ export async function fetchCategoriesFromSheets(): Promise<Category[]> {
     if (cachedCategories) {
       console.warn('Using cached category data due to fetch error');
       return cachedCategories;
+    }
+
+    // Return empty array as fallback
+    return [];
+  }
+}
+
+/**
+ * Fetches holidays from Google Sheets
+ */
+export async function fetchHolidaysFromSheets(): Promise<Holiday[]> {
+  // Check cache first
+  const now = Date.now();
+  if (cachedHolidays && (now - holidaysCacheTimestamp) < GOOGLE_SHEET_CONFIG.cacheDuration) {
+    return cachedHolidays;
+  }
+
+  try {
+    // Use the published CSV endpoint for holidays sheet
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_CONFIG.sheetId}/gviz/tq?tqx=out:csv&sheet=${GOOGLE_SHEET_CONFIG.holidaysSheetName}`;
+
+    const response = await fetch(csvUrl, {
+      cache: 'no-store', // Always fetch fresh data
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch holidays sheet data: ${response.status}`);
+    }
+
+    const csvText = await response.text();
+    const holidays = parseCSVToHolidays(csvText);
+
+    // Update cache
+    cachedHolidays = holidays;
+    holidaysCacheTimestamp = now;
+
+    return holidays;
+  } catch (error) {
+    console.error('Error fetching holidays from Google Sheets:', error);
+
+    // Return cached data if available, even if expired
+    if (cachedHolidays) {
+      console.warn('Using cached holiday data due to fetch error');
+      return cachedHolidays;
     }
 
     // Return empty array as fallback
@@ -411,6 +460,70 @@ function parseCategoryRow(headers: string[], values: string[]): Category | null 
 }
 
 /**
+ * Parses CSV text to Holiday array
+ */
+function parseCSVToHolidays(csvText: string): Holiday[] {
+  const lines = csvText.split('\n');
+
+  if (lines.length < 2) {
+    return [];
+  }
+
+  // Parse header row
+  const headers = parseCSVLine(lines[0]);
+
+  // Parse data rows
+  const holidays: Holiday[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const values = parseCSVLine(line);
+    if (values.length < headers.length) continue;
+
+    try {
+      const holiday = parseHolidayRow(headers, values);
+      if (holiday) {
+        holidays.push(holiday);
+      }
+    } catch (error) {
+      console.warn(`Error parsing holiday row ${i}:`, error);
+    }
+  }
+
+  return holidays;
+}
+
+/**
+ * Parses a holiday row from CSV values
+ */
+function parseHolidayRow(headers: string[], values: string[]): Holiday | null {
+  const row: Record<string, string> = {};
+
+  headers.forEach((header, index) => {
+    row[header.toLowerCase().trim()] = values[index] || '';
+  });
+
+  // Required fields check
+  if (!row['id'] || !row['name']) {
+    return null;
+  }
+
+  // Build holiday object
+  const holiday: Holiday = {
+    id: row['id'],
+    name: row['name'],
+    date: row['date'] || undefined,
+    icon: row['icon'] || undefined,
+    description: row['description'] || undefined,
+    categoryFilter: row['categoryfilter'] || row['category'] || undefined,
+  };
+
+  return holiday;
+}
+
+/**
  * Parses boolean values from sheet
  */
 function parseBool(value: string): boolean {
@@ -440,4 +553,12 @@ export function clearBlogCache(): void {
 export function clearCategoriesCache(): void {
   cachedCategories = null;
   categoriesCacheTimestamp = 0;
+}
+
+/**
+ * Manual cache clear function for holidays
+ */
+export function clearHolidaysCache(): void {
+  cachedHolidays = null;
+  holidaysCacheTimestamp = 0;
 }
