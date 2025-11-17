@@ -3,6 +3,12 @@
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
 import { Heart, Star } from "lucide-react";
 import { Product, getProductLink } from "@/data/products";
 import Image from "next/image";
@@ -66,14 +72,32 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       <CardContent className="flex-1 flex flex-col p-4">
         {/* Title */}
-        <h3 className="font-bold text-lg text-zinc-900 mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors">
-          {product.title}
-        </h3>
+        <TooltipProvider>
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <h3 className="font-bold text-lg text-zinc-900 mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors cursor-help">
+                {product.title}
+              </h3>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p className="text-sm">{product.title}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         {/* Description */}
-        <p className="text-sm text-zinc-600 mb-3 line-clamp-2 flex-1">
-          {product.description}
-        </p>
+        <TooltipProvider>
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <p className="text-sm text-zinc-600 mb-3 line-clamp-2 flex-1 cursor-help">
+                {product.description}
+              </p>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-sm">
+              <p className="text-sm whitespace-normal">{product.description}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         {/* Rating */}
         {product.rating && (
